@@ -1,0 +1,285 @@
+Programming Methodology 2021 Fall
+Class has been archived by your teacher. You can't add or edit anything.
+Assignment 4
+/*
+ * File: HangmanCanvas.java
+ * ------------------------
+ * This file keeps track of the Hangman display.
+ */
+
+import java.awt.Font;
+
+import acm.graphics.*;
+
+public class HangmanCanvas extends GCanvas {
+	GLabel label;
+	GLabel usedWords;
+	String usedWord = "";
+
+	/** Resets the display so that only the scaffold appears */
+	public void reset() {
+		removeAll();
+		resetVariables();
+		addScaffold();
+		addBeam();
+		addRope();
+	}
+
+//this method resets variables.
+	private void resetVariables() {
+		usedWord = "";
+		label = null;
+		usedWords = null;
+
+	}
+
+	/**
+	 * Updates the word on the screen to correspond to the current state of the
+	 * game. The argument string shows what letters have been guessed so far;
+	 * unguessed letters are indicated by hyphens.
+	 */
+	public void displayWord(String word) {
+
+		if (label == null) {
+			label = new GLabel(word, getWidth() / 2, getHeight() / 2 + SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH);
+			label.setFont("CALIBRI-20");
+			add(label);
+		} else {
+			label.setLabel(word);
+		}
+	}
+
+	/**
+	 * Updates the display to correspond to an incorrect guess by the user. Calling
+	 * this method causes the next body part to appear on the scaffold and adds the
+	 * letter to the list of incorrect guesses that appears at the bottom of the
+	 * window.
+	 */
+	public void noteIncorrectGuess(char letter, int counter) {
+		if (counter == 1) {
+			addHead();
+		}
+		if (counter == 2) {
+			addBody();
+		}
+		if (counter == 3) {
+			addLeftArm();
+			addLeftHand();
+		}
+		if (counter == 4) {
+			addRightArm();
+			addRightHand();
+		}
+		if (counter == 5) {
+			addLeftHip();
+			addlefLeg();
+		}
+		if (counter == 6) {
+			addRightHip();
+			addRightLeg();
+		}
+		if (counter == 7) {
+			addLeftFoot();
+		}
+		if (counter == 8) {
+			addRightFoot();
+		}
+		usedWord += letter + ", ";
+		usedWords = new GLabel(usedWord, 0, getHeight() / 2 + SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH);
+		usedWords.setFont("CALIBRI-16");
+		add(usedWords);
+
+	}
+
+	//this method draws foot
+	private void addRightFoot() {
+		double footXi = getWidth() / 2 + HIP_WIDTH;
+		double footXf = getWidth() / 2 + HIP_WIDTH + FOOT_LENGTH;
+		double footYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + BODY_LENGTH
+				+ LEG_LENGTH;
+
+		GLine rightFoot = new GLine(footXi, footYi, footXf, footYi);
+		add(rightFoot);
+	}
+	//// this method draws other foot
+
+	private void addLeftFoot() {
+		double footXi = getWidth() / 2 - HIP_WIDTH;
+		double footXf = getWidth() / 2 - HIP_WIDTH - FOOT_LENGTH;
+		double footYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + BODY_LENGTH
+				+ LEG_LENGTH;
+
+		GLine LeftFoot = new GLine(footXi, footYi, footXf, footYi);
+		add(LeftFoot);
+
+	}
+
+	// this method draws right leg
+	private void addRightLeg() {
+		double legYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + BODY_LENGTH;
+		double legYf = legYi + LEG_LENGTH;
+		double legXi = getWidth() / 2 + HIP_WIDTH;
+		;
+		GLine rightLeg = new GLine(legXi, legYi, legXi, legYf);
+		add(rightLeg);
+
+	}
+	// this method draws left hip
+
+	private void addLeftHip() {
+		double hipXi = getWidth() / 2;
+		double hipXf = getWidth() / 2 - HIP_WIDTH;
+		double hipYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + BODY_LENGTH;
+		GLine rightHip = new GLine(hipXi, hipYi, hipXf, hipYi);
+		add(rightHip);
+	}
+
+	// this method draws left leg
+	private void addlefLeg() {
+		double legYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + BODY_LENGTH;
+		double legYf = legYi + LEG_LENGTH;
+		double legXi = getWidth() / 2 - HIP_WIDTH;
+		GLine rightLeg = new GLine(legXi, legYi, legXi, legYf);
+		add(rightLeg);
+	}
+
+	// this method draws right hip
+	private void addRightHip() {
+		double hipXi = getWidth() / 2;
+		double hipXf = getWidth() / 2 + HIP_WIDTH;
+		double hipYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + BODY_LENGTH;
+		GLine rightHip = new GLine(hipXi, hipYi, hipXf, hipYi);
+		add(rightHip);
+
+	}
+
+	// this method draws body
+	private void addBody() {
+		double bodyYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS;
+		double bodyYf = bodyYi + BODY_LENGTH;
+		GLine body = new GLine(getWidth() / 2, bodyYi, getWidth() / 2, bodyYf);
+		add(body);
+	}
+
+	// this method draws head
+	private void addHead() {
+		GOval head = new GOval(2 * HEAD_RADIUS, 2 * HEAD_RADIUS);
+		double headX = getWidth() / 2 - HEAD_RADIUS;
+		double headY = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH;
+		add(head, headX, headY);
+
+	}
+
+	// this method draws rope
+	private void addRope() {
+		// casebi davamato tu sheeshala mashin ro daxatos satitaod
+		double ropeYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2;
+		double ropeYf = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH;
+		GLine rope = new GLine(getWidth() / 2, ropeYi, getWidth() / 2, ropeYf);
+		add(rope);
+
+	}
+
+	// this method draws beam
+	private void addBeam() {
+		double beamYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2;
+		double beamXf = getWidth() / 2;
+		double beamXi = getWidth() / 2 - BEAM_LENGTH;
+
+		GLine beam = new GLine(beamXi, beamYi, beamXf, beamYi);
+		add(beam);
+	}
+
+	// this method draws scaffold
+	private void addScaffold() {
+		double scaffoldYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2;
+		double scaffoldYf = getHeight() / 2 + SCAFFOLD_HEIGHT / 2;
+		double scaffoldXi = getWidth() / 2 - BEAM_LENGTH;
+		GLine scaffold = new GLine(scaffoldXi, scaffoldYi, scaffoldXi, scaffoldYf);
+		add(scaffold);
+	}
+
+	private void addLeftArm() {
+		double lArmXi = getWidth() / 2;
+		double lArmXf = getWidth() / 2 - UPPER_ARM_LENGTH;
+		double lArmYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + ARM_OFFSET_FROM_HEAD;
+		GLine leftArm = new GLine(lArmXi, lArmYi, lArmXf, lArmYi);
+		add(leftArm);
+	}
+
+	// this method draws left hand
+	private void addLeftHand() {
+		double lHandXi = getWidth() / 2 - UPPER_ARM_LENGTH;
+		double lHandYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + ARM_OFFSET_FROM_HEAD;
+		double lHandYf = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + ARM_OFFSET_FROM_HEAD
+				+ LOWER_ARM_LENGTH;
+		GLine leftHand = new GLine(lHandXi, lHandYi, lHandXi, lHandYf);
+		add(leftHand);
+	}
+
+	// this method draws right arm
+	private void addRightArm() {
+		double rArmXi = getWidth() / 2;
+		double rArmXf = getWidth() / 2 + UPPER_ARM_LENGTH;
+		double rArmYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + ARM_OFFSET_FROM_HEAD;
+		GLine rightArm = new GLine(rArmXi, rArmYi, rArmXf, rArmYi);
+		add(rightArm);
+
+	}
+
+	// this method draws right hand
+	private void addRightHand() {
+		double rHandXi = getWidth() / 2 + UPPER_ARM_LENGTH;
+		double rHandYi = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + ARM_OFFSET_FROM_HEAD;
+		double rHandYf = getHeight() / 2 - SCAFFOLD_HEIGHT / 2 + ROPE_LENGTH + 2 * HEAD_RADIUS + ARM_OFFSET_FROM_HEAD
+				+ LOWER_ARM_LENGTH;
+		GLine rightHand = new GLine(rHandXi, rHandYi, rHandXi, rHandYf);
+		add(rightHand);
+
+	}
+
+	/* Constants for the simple version of the picture (in pixels) */
+	private static final int SCAFFOLD_HEIGHT = 360; // xis dzeli
+	private static final int BEAM_LENGTH = 144; // dzelidan gamoshverili tokis dasakidebeli
+	private static final int ROPE_LENGTH = 18; // toki
+	private static final int HEAD_RADIUS = 36;
+	private static final int BODY_LENGTH = 144;
+	private static final int ARM_OFFSET_FROM_HEAD = 28;
+	private static final int UPPER_ARM_LENGTH = 72;
+	private static final int LOWER_ARM_LENGTH = 44;
+	private static final int HIP_WIDTH = 36;
+	private static final int LEG_LENGTH = 108;
+	private static final int FOOT_LENGTH = 28;
+
+}
+HangmanCanvas.java
+Displaying HangmanCanvas.java.
+Assignment 4
+Shota Gvinepadze
+•
+Sep 26, 2021 (Edited Jan 13, 2022)
+100 points
+Due Dec 5, 2021
+Hangman - 7%
+
+assignment4.zip
+Compressed Archive
+Class comments
+Your work
+Turned in
+
+Hangman.java
+Java
+
+HangmanCanvas.java
+Java
+
+HangmanLexicon.java
+Java
+
+HangmanLexicon.txt
+Text
+
+ShorterLexicon.txt
+Text
+Private comments
