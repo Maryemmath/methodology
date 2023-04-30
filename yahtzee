@@ -1,0 +1,331 @@
+
+/*
+ * File: Yahtzee.java
+ * ------------------
+ * This program will eventually play the Yahtzee game.
+ */
+
+import java.util.Arrays;
+
+import acm.io.*;
+import acm.program.*;
+import acm.util.*;
+
+public class Yahtzee extends GraphicsProgram implements YahtzeeConstants {
+
+	public static void main(String[] args) {
+		new Yahtzee().start(args);
+	}
+
+	public void run() {
+		IODialog dialog = getDialog();
+		nPlayers = dialog.readInt("Enter number of players");
+		playerNames = new String[nPlayers];
+		for (int i = 1; i <= nPlayers; i++) {
+			playerNames[i - 1] = dialog.readLine("Enter name for player " + i);
+		}
+		display = new YahtzeeDisplay(getGCanvas(), playerNames);
+		playGame();
+	}
+
+	private void playGame() {
+		int[] upperScore = new int[nPlayers];
+		int[] totalScore = new int[nPlayers];
+
+		for (int k = 0; k < 2; k++) {
+			for (int i = 1; i <= nPlayers; i++) {
+				display.printMessage(playerNames[i - 1] + "'s turn. Click " + "Roll Dice" + " button to roll the dice");
+				display.waitForPlayerToClickRoll(i);
+				int[] dice = randomDice();
+				display.displayDice(dice);
+				for (int j = 0; j < 2; j++) {
+					display.printMessage("Select the dice you wish to re-roll and click" + "Roll Again.");
+					display.waitForPlayerToSelectDice();
+					changeValues(dice);
+					display.displayDice(dice);
+
+				}
+				display.printMessage("Select the category for this roll");
+				int category = display.waitForPlayerToSelectCategory();
+				int score = getScore(category, dice);
+				if (category >= ONES && category <= SIXES) {
+					upperScore[i - 1] += score;
+				}
+				totalScore[i - 1] += score;
+
+				display.updateScorecard(TOTAL, i, totalScore[i - 1]);
+				display.updateScorecard(category, i, score);
+
+			}
+		}
+		fillUpperScore(upperScore);
+		getWinner(totalScore);
+	}
+
+	// This method finds the winner
+	private void getWinner(int[] totalScore) {
+		int max = 0;
+		int index = 0;
+		for (int i = 0; i < totalScore.length; i++) {
+			if (totalScore[i] >= max) {
+				max = totalScore[i];
+				index = i;
+			}
+		}
+		display.printMessage("Winner is " + playerNames[index] + " with score " + max);
+	}
+
+	// This method fills upper score line
+	private void fillUpperScore(int[] upperScore) {
+		for (int i = 0; i < upperScore.length; i++) {
+			display.updateScorecard(UPPER_SCORE, i + 1, upperScore[i]);
+			if (upperScore[i] >= 63) {
+				display.updateScorecard(UPPER_BONUS, i + 1, 35);
+			}
+		}
+
+	}
+
+	/*
+	 * This method defines if the selected category is true and it gives scores to
+	 * the selected category
+	 */
+
+	private int getScore(int category, int[] dice) {
+		if (category == ONES) {
+			return checkSums(dice, ONES);
+		} else if (category == TWOS) {
+			return checkSums(dice, TWOS);
+		} else if (category == THREES) {
+			return checkSums(dice, THREES);
+		} else if (category == FOURS) {
+			return checkSums(dice, FOURS);
+		} else if (category == FIVES) {
+			return checkSums(dice, FIVES);
+		} else if (category == SIXES) {
+			return checkSums(dice, SIXES);
+		} else if (category == THREE_OF_A_KIND) {
+			if (checkCategory(dice, category)) {
+				return sum(dice);
+			} else {
+				return 0;
+			}
+
+		} else if (category == FOUR_OF_A_KIND) {
+			if (checkCategory(dice, category)) {
+				return sum(dice);
+			} else {
+				return 0;
+			}
+		} else if (category == FULL_HOUSE) {
+			if (checkCategory(dice, category)) {
+				return 25;
+			} else {
+				return 0;
+			}
+		} else if (category == SMALL_STRAIGHT) {
+			if (checkCategory(dice, category)) {
+				return 30;
+			} else {
+				return 0;
+			}
+		} else if (category == LARGE_STRAIGHT) {
+			if (checkCategory(dice, category)) {
+				return 40;
+			} else {
+				return 0;
+			}
+		} else if (category == YAHTZEE) {
+			if (checkCategory(dice, category)) {
+				return 50;
+			} else {
+				return 0;
+			}
+		} else {
+			return sum(dice);
+		}
+
+	}
+
+	// checks validaton of all the selected categories
+	private boolean checkCategory(int dice[], int category) {
+		if (category == THREE_OF_A_KIND) {
+			return checkForThree(dice);
+		} else if (category == FOUR_OF_A_KIND) {
+			return checkForFour(dice);
+		} else if (category == FULL_HOUSE) {
+			return checkForFull(dice);
+		} else if (category == SMALL_STRAIGHT) {
+			return checkForSStraight(dice);
+		} else if (category == LARGE_STRAIGHT) {
+			return checkForLStraight(dice);
+		} else {
+			return checkForYahtzee(dice);
+		}
+	}
+
+	// checks if the selected category as Yahtzee is correct
+	private boolean checkForYahtzee(int[] dice) {
+		int counter = 0;
+		int checker = dice[0];
+		for (int i = 1; i < dice.length; i++) {
+			if (checker == dice[i]) {
+				counter++;
+			}
+			if (counter == 5) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+	// checks if the selected category as large straight is correct
+
+	private boolean checkForLStraight(int dice[]) {
+		Arrays.sort(dice);
+		int counter = 0;
+		for (int i = 0; i < dice.length - 1; i++) {
+			if (dice[i + 1] == dice[i] + 1) {
+				counter++;
+				if (counter == 4) {
+					return true;
+				}
+			} else {
+				counter = 0;
+			}
+
+		}
+		return false;
+	}
+	// checks if the selected category as small straight is correct
+
+	private boolean checkForSStraight(int[] dice) {
+		int counter = 0;
+		Arrays.sort(dice); // 11234
+		for (int i = 0; i < dice.length - 1; i++) {
+			if (dice[i + 1] == dice[i] + 1) {
+				counter++;
+				if (counter == 3) {
+					return true;
+				}
+			} else {
+				counter = 0;
+			}
+
+		}
+		return false;
+	}
+	// checks if the selected category as full straight is correct
+
+	private boolean checkForFull(int[] dice) {
+		boolean result = false;
+		int value = 0;
+		for (int i = 0; i < dice.length; i++) {
+
+			int counter = 0;
+			for (int j = i; j < dice.length; j++) {
+				if (dice[i] == dice[j]) {
+					counter++;
+					if (counter == 3) {
+						result = true;
+						value = dice[i];
+					}
+
+				}
+			}
+		}
+		boolean result2 = false;
+		for (int i = 0; i < dice.length; i++) {
+			int counter = 0;
+			for (int j = i; j < dice.length; j++) {
+				if (dice[i] == dice[j] && dice[i] != value) {
+					counter++;
+					if (counter == 2) {
+						result2 = true;
+					}
+				}
+			}
+		}
+		return result && result2;
+	}
+	// checks if the selected category as four of a kind is correct
+
+	private boolean checkForFour(int[] dice) {
+		for (int i = 0; i < dice.length; i++) {
+			int counter = 0;
+			for (int j = i; j < dice.length; j++) {
+				if (dice[i] == dice[j]) {
+					counter++;
+					if (counter == 4) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	// checks if the selected category as three of a kind is correct
+
+	private boolean checkForThree(int[] dice) {
+
+		for (int i = 0; i < dice.length; i++) {
+			int counter = 0;
+			for (int j = i; j < dice.length; j++) {
+				if (dice[i] == dice[j]) {
+					counter++;
+					if (counter == 3) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	// counts the sum of the numbers on dice
+	private int sum(int[] dice) {
+		int sum = 0;
+		for (int i = 0; i < dice.length; i++) {
+			sum += dice[i];
+		}
+		return sum;
+	}
+
+	// counts scores as a sum of the numbers on dice for from ONES to SIXES category
+	private int checkSums(int dice[], int i) {
+		int sum = 0;
+		for (int j = 0; j < dice.length; j++) {
+			if (dice[j] == i) {
+				sum += dice[j];
+			}
+		}
+		return sum;
+
+	}
+
+	// this method changes values on the selected dices
+	private void changeValues(int[] dice) {
+		for (int i = 0; i < dice.length; i++) {
+			if (display.isDieSelected(i)) {
+				dice[i] = rgen.nextInt(1, 6);
+			}
+		}
+
+	}
+
+	// this method randomizes values for dices
+	private int[] randomDice() {
+		int[] randomValue = new int[5];
+		for (int i = 0; i < randomValue.length; i++) {
+			randomValue[i] = rgen.nextInt(1, 6);
+		}
+		return randomValue;
+	}
+
+	/* Private instance variables */
+	private int nPlayers;
+	private String[] playerNames;
+	private YahtzeeDisplay display;
+	private RandomGenerator rgen = new RandomGenerator();
+
+}
