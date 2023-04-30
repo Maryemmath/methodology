@@ -1,6 +1,4 @@
-Programming Methodology 2021 Fall
-Class has been archived by your teacher. You can't add or edit anything.
-Assignment 4
+
 /*
  * File: HangmanCanvas.java
  * ------------------------
@@ -252,34 +250,5 @@ public class HangmanCanvas extends GCanvas {
 	private static final int FOOT_LENGTH = 28;
 
 }
-HangmanCanvas.java
-Displaying HangmanCanvas.java.
-Assignment 4
-Shota Gvinepadze
-•
-Sep 26, 2021 (Edited Jan 13, 2022)
-100 points
-Due Dec 5, 2021
-Hangman - 7%
 
-assignment4.zip
-Compressed Archive
-Class comments
-Your work
-Turned in
 
-Hangman.java
-Java
-
-HangmanCanvas.java
-Java
-
-HangmanLexicon.java
-Java
-
-HangmanLexicon.txt
-Text
-
-ShorterLexicon.txt
-Text
-Private comments
