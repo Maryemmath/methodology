@@ -1,0 +1,116 @@
+/*
+ * File: Hangman.java
+ * ------------------
+ * This program will eventually play the Hangman game from
+ * Assignment #4.
+ */
+
+import acm.graphics.*;
+import acm.program.*;
+import acm.util.*;
+
+import java.awt.*;
+
+public class Hangman extends ConsoleProgram {
+	//private instance variables.
+	HangmanLexicon words;
+	RandomGenerator rgen;
+	HangmanCanvas canvas;
+	String randomWord;
+	private int life;
+	String hiddenWords;
+	private int counter;
+
+	//this method initializes variables.
+	public void init() {
+		counter = 0;
+		life = 8;
+		canvas = new HangmanCanvas();
+		add(canvas);
+		words = new HangmanLexicon();
+		rgen = RandomGenerator.getInstance();
+		randomWord = words.getWord(rgen.nextInt(0, words.getWordCount() - 1));
+		hiddenWords = hideWords();
+	}
+
+	// This method adds starter visual
+	public void run() {
+		canvas.reset();
+		println("Welcome to Hangman!");
+		println("The word now looks like this: " + hiddenWords);
+		canvas.displayWord(hiddenWords);
+		println("You have " + life + " guesses left.");
+		gamePrinciple();
+	}
+
+	// this method decides wether the input letter is correct or not.
+	private void gamePrinciple() {
+		while (life != 0 && !hiddenWords.equals(randomWord)) {
+			String guess = readLine("Your guess: ");
+			while (guess.length() != 1 || !Character.isAlphabetic(guess.charAt(0))) {
+				println("illegal input");
+				guess = readLine("Your guess: ");
+			}
+			char ch = guess.charAt(0);
+			ch = Character.toUpperCase(ch);
+			if (!randomWord.contains(ch + "")) {
+				life--;
+				counter++;
+				canvas.noteIncorrectGuess(ch, counter);
+				wrongCase(ch);
+				println("You have " + life + " guesses left.");
+				if (life == 0) {
+					println("The word was: " + randomWord);
+					println("You lose");
+				}
+			} else {
+				positiveCase(ch);
+			}
+		}
+
+	}
+
+	// this method defines the case when entered letter is correct.
+	private void positiveCase(char ch) {
+		for (int i = 0; i < randomWord.length(); i++) {
+
+			if (ch == randomWord.charAt(i)) {
+				openWord(ch, i);
+			}
+
+		}
+		println("That guess is correct.");
+		if (!hiddenWords.contains("-")) {
+			println("You guessed the word: " + hiddenWords);
+			println("You Win");
+			return;
+		}
+		println("The word now looks like this: " + hiddenWords);
+		println("You have " + life + " guesses left.");
+	}
+
+	// this method defines the case when entered letter is wrong.
+	private void wrongCase(char ch) {
+		println("Your guess: " + ch);
+		println("There is no " + ch + "'s in the word");
+		println("The word now looks like this: " + hiddenWords);
+		canvas.displayWord(hiddenWords);
+
+	}
+
+	// when entered word is correct this method adds the letter to the coded word in
+	// it's index.
+	public void openWord(char ch, int i) {
+		hiddenWords = hiddenWords.substring(0, i) + ch + hiddenWords.substring(i + 1);
+		canvas.displayWord(hiddenWords);
+
+	}
+	//this method codes the word and replaces its letters with "-".
+	private String hideWords() {
+		String x = "";
+		for (int i = 0; i < randomWord.length(); i++) {
+			x += "-";
+		}
+		return x;
+	}
+}
