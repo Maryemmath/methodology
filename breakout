@@ -1,3 +1,4 @@
+
 /*
  * File: Breakout.java
  * -------------------
@@ -15,52 +16,360 @@ import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class Breakout extends GraphicsProgram {
+public class extension extends GraphicsProgram {
 
-/** Width and height of application window in pixels */
-	public static final int APPLICATION_WIDTH = 400;
+	/** Width and height of application window in pixels */
+	public static final int APPLICATION_WIDTH = 500;
 	public static final int APPLICATION_HEIGHT = 600;
 
-/** Dimensions of game board (usually the same) */
+	/** Dimensions of game board (usually the same) */
 	private static final int WIDTH = APPLICATION_WIDTH;
 	private static final int HEIGHT = APPLICATION_HEIGHT;
 
-/** Dimensions of the paddle */
+	/** Dimensions of the paddle */
 	private static final int PADDLE_WIDTH = 60;
 	private static final int PADDLE_HEIGHT = 10;
 
-/** Offset of the paddle up from the bottom */
+	/** Offset of the paddle up from the bottom */
 	private static final int PADDLE_Y_OFFSET = 30;
 
-/** Number of bricks per row */
+	/** Number of bricks per row */
 	private static final int NBRICKS_PER_ROW = 10;
 
-/** Number of rows of bricks */
+	/** Number of rows of bricks */
 	private static final int NBRICK_ROWS = 10;
 
-/** Separation between bricks */
+	/** Separation between bricks */
 	private static final int BRICK_SEP = 4;
 
-/** Width of a brick */
-	private static final int BRICK_WIDTH =
-	  (WIDTH - (NBRICKS_PER_ROW - 1) * BRICK_SEP) / NBRICKS_PER_ROW;
+	/** Width of a brick */
+	private static final int BRICK_WIDTH = (WIDTH - (NBRICKS_PER_ROW - 1) * BRICK_SEP) / NBRICKS_PER_ROW;
 
-/** Height of a brick */
+	/** Height of a brick */
 	private static final int BRICK_HEIGHT = 8;
 
-/** Radius of the ball in pixels */
+	/** Radius of the ball in pixels */
 	private static final int BALL_RADIUS = 10;
 
-/** Offset of the top brick row from the top */
+	/** Offset of the top brick row from the top */
 	private static final int BRICK_Y_OFFSET = 70;
 
-/** Number of turns */
+	/** Number of turns */
 	private static final int NTURNS = 3;
+	/** paddle */
+	private GRect paddle;
+	// paddle x coordinator
+	private double x;
+	// random generator
+	private RandomGenerator rgen = RandomGenerator.getInstance();
+	// random x velocity for ball
+	private double vx = rgen.nextDouble(1.0, 3.0);
+	// y velocity for ball
+	private double vy = 6;
+	// ball variable
+	private GOval ball;
+	// brick
+	private GRect bricks;
+	// life number
+	private int life = NTURNS;
+	boolean lose = false;
+	private GLabel label;
+	// number of bricks left after brick-crush
+	private int reminingBricks = NBRICKS_PER_ROW * NBRICK_ROWS;
+	private Canvas mainCanvas;
+	// game status: game on or over
+	boolean gameOn = true;
+	GObject theme;
+	private int brickCounter = 0;
+	GRect prize;
+	boolean paddleTouch = true;
+	private static final int PRIZE_PARAMETER = 20;
+	GObject prizeCrash;
+	AudioClip opening;
+	private int brickCountCheck = 0;
 
-/* Method: run() */
-/** Runs the Breakout program. */
+	/* Method: run() */
+	/** Runs the Breakout program. */
+
 	public void run() {
-		/* You fill this in, along with any subsidiary methods */
+		theme = new GImage("spacecity.jpg");
+		add(theme);
+		setRealSize();
+		addMouseListeners();
+		gameInitialization();
+	}
+
+	//sets size of game window
+	private void setRealSize() {
+		mainCanvas = new Canvas();
+		mainCanvas.setSize(APPLICATION_WIDTH, APPLICATION_HEIGHT);
+
+	}
+
+	//builds the visualisation of the game
+	private void gameInitialization() {
+		welcomeToTheGame();
+		addBricks();
+		addPaddle();
+		addBall();
+
+	}
+
+	// adds welcome text
+	private void welcomeToTheGame() {
+		label = new GLabel("WELCOME TO THE GAME, CLICK TO START");
+		label.setFont("BOLD-20");
+		label.setColor(Color.WHITE);
+		add(label, APPLICATION_WIDTH / 2 - label.getWidth() / 2,
+				APPLICATION_HEIGHT / 2 - label.getHeight() / 2 - 2 * BALL_RADIUS);
+		AudioClip opening = MediaTools.loadAudioClip("opening.au");
+		opening.play();
+		waitForClick();
+		remove(label);
+		opening.stop();
+
+	}
+
+	//adds bricks
+	private void addBricks() {
+		double x = APPLICATION_WIDTH / 2 - (double) NBRICKS_PER_ROW / 2 * (BRICK_WIDTH + BRICK_SEP);
+		double y = BRICK_Y_OFFSET;
+		for (int i = 0; i < NBRICK_ROWS; i++) {
+			for (int j = 0; j < NBRICKS_PER_ROW; j++) {
+				bricks = new GRect(x, y, BRICK_WIDTH, BRICK_HEIGHT);
+				x += BRICK_WIDTH + BRICK_SEP;
+				add(bricks);
+
+				if (i % 10 == 0 || i % 10 == 1) {
+					bricks.setFilled(true);
+					bricks.setColor(Color.RED);
+				}
+				if (i % 10 == 2 || i % 10 == 3) {
+					bricks.setFilled(true);
+					bricks.setColor(Color.ORANGE);
+				}
+				if (i % 10 == 4 || i % 10 == 5) {
+					bricks.setFilled(true);
+					bricks.setColor(Color.YELLOW);
+				}
+				if (i % 10 == 6 || i % 10 == 7) {
+					bricks.setFilled(true);
+					bricks.setColor(Color.GREEN);
+				}
+				if (i % 10 == 8 || i % 10 == 9) {
+					bricks.setFilled(true);
+					bricks.setColor(Color.CYAN);
+				}
+			}
+			y += BRICK_SEP + BRICK_HEIGHT;
+			x = APPLICATION_WIDTH / 2 - (double) NBRICKS_PER_ROW / 2 * (BRICK_WIDTH + BRICK_SEP);
+
+		}
+
+	}
+
+	// adds paddle in the middle 
+	private void addPaddle() {
+		x = APPLICATION_WIDTH / 2 - PADDLE_WIDTH / 2;
+		double y = getHeight() - PADDLE_Y_OFFSET - PADDLE_HEIGHT;
+		paddle = new GRect(x, y, PADDLE_WIDTH, PADDLE_HEIGHT);
+		paddle.setFilled(true);
+		paddle.setColor(Color.green);
+		add(paddle);
+	}
+
+	//creates ball 
+	private void addBall() {
+		ball = new GOval(APPLICATION_WIDTH / 2 - (double) BALL_RADIUS, APPLICATION_HEIGHT / 2 - BALL_RADIUS,
+				2 * BALL_RADIUS, 2 * BALL_RADIUS);
+		ball.setFilled(true);
+		ball.setColor(Color.LIGHT_GRAY);
+		add(ball);
+		ballMovement();
+	}
+
+	//controls paddle movement and follows mouse movement
+	public void mouseMoved(MouseEvent e) {
+		if (paddle != null) {
+			if (e.getX() + paddle.getWidth() / 2 <= WIDTH && e.getX() - paddle.getWidth() / 2 >= 0) {
+				paddle.move(e.getX() - paddle.getWidth() / 2 - x, 0);
+				x = e.getX() - paddle.getWidth() / 2;
+
+			}
+		}
+	}
+
+	/*
+	 * tells the ball how to move and knows whether the player has a permission to
+	 * play again or has lost.
+	 */
+	private void ballMovement() {
+		waitForClick();
+		if (rgen.nextBoolean(0.5))
+			vx = -vx;
+		while (gameOn) {
+			pause(10);
+			ball.move(vx, vy);
+			movementLimits();
+			lifeChecker();
+			colliderChecker();
+			crushedOnBricksOrNot();
+			if (prize != null) {
+				movePrize();
+			}
+		}
+	}
+
+	/*
+	 * checks if ball goes under the paddle and if so decreases life and if there is
+	 * any turns left adds ball again
+	 */
+	private void lifeChecker() {
+		if (ball.getY() >= HEIGHT + 2 * BALL_RADIUS) {
+			life = life - 1;
+			if (life != 0) {
+				ball.setLocation(getWidth() / 2 - BALL_RADIUS, getHeight() / 2 - BALL_RADIUS);
+				paddle.setSize(PADDLE_WIDTH, PADDLE_HEIGHT);
+				brickCountCheck = 0;
+				if (prize != null) {
+					remove(prize);
+				}
+				waitForClick();
+				vx = rgen.nextDouble(1.0, 3.0);
+				if (rgen.nextBoolean(0.5))
+					vx = -vx;
+				ball.move(vx, vy);
+
+			} else {
+				gameOn = false;
+
+			}
+		}
+	}
+
+	//adds limits to the ball movement, when ball touches the walls it reflects the ball.
+	private void movementLimits() {
+		if (ball.getX() + 2 * BALL_RADIUS >= APPLICATION_WIDTH || ball.getX() <= 0) {
+			vx = -vx;
+		}
+		if (ball.getY() <= 0) {
+			vy = -vy;
+		}
+
+	}
+
+	/*
+	 * checks if ball crushed on bricks. if so crushed bricks will be deleted and if
+	 * all bricks were removed in maximum 3 trial then player has won, otherwise -
+	 * lost. Also after every 10th remove of bricks adds power up.
+	 */
+	private void crushedOnBricksOrNot() {
+		GObject collider = colliderChecker();
+		if (collider != prize) {
+			if (collider == paddle) {
+				ball.setLocation(ball.getX(), paddle.getY() - 2 * BALL_RADIUS - 3);
+				vy = -vy;
+			} else if (collider != theme) {
+				brickCounter += 1;
+				brickCountCheck += 1;
+				if (brickCountCheck % 10 == 0 && prize == null) {
+					createPrize();
+				}
+				remove(collider);
+				ball.setColor(collider.getColor());
+				reminingBricks--;
+				vy = -vy;
+
+			}
+		}
+		winOrLose();
+	}
+
+	//determines whether player won or lose 
+
+	private void winOrLose() {
+		if (reminingBricks == 0 && life != 0) {
+			AudioClip win = MediaTools.loadAudioClip("winMarvel.au");
+			win.play();
+			label = new GLabel("YOU WON");
+			label.setFont("BOLD-20");
+			label.setColor(Color.WHITE);
+			life = 0;
+			vx = 0;
+			vy = 0;
+			removeAll();
+			add(theme);
+			add(label, APPLICATION_WIDTH / 2 - label.getWidth() / 2,
+					APPLICATION_HEIGHT / 2 - label.getHeight() / 2 - 2 * BALL_RADIUS);
+
+		}
+		if (reminingBricks != 0 && gameOn == false) {
+			removeAll();
+			add(theme);
+			AudioClip lose = MediaTools.loadAudioClip("loseMarvel.au");
+			lose.play();
+			label = new GLabel("YOU LOST");
+			label.setFont("BOLD-20");
+			label.setColor(Color.WHITE);
+			add(label, APPLICATION_WIDTH / 2 - label.getWidth() / 2,
+					APPLICATION_HEIGHT / 2 - label.getHeight() / 2 - 2 * BALL_RADIUS);
+		}
+	}
+
+	/*
+	 * if player took the bonus method randoms two cases. one method doubles width
+	 * of the paddle and second one makes paddle width half of its size
+	 */
+	private void powerUp() {
+		paddle.setSize(PADDLE_WIDTH, PADDLE_HEIGHT);
+		int randomBonus = rgen.nextInt(0, 1);
+		if (randomBonus == 0) {
+			paddle.setSize(PADDLE_WIDTH * 2, PADDLE_HEIGHT);
+		} else if (randomBonus == 1) {
+			paddle.setSize(PADDLE_WIDTH / 2, PADDLE_HEIGHT);
+		}
+	}
+
+	// checks four point of the ball whether it touches any object or not
+	private GObject colliderChecker() {
+		if (getElementAt(ball.getX(), ball.getY()) != theme && getElementAt(ball.getX(), ball.getY()) != null) {
+			return getElementAt(ball.getX(), ball.getY());
+		}
+		if (getElementAt(ball.getX() + 2 * BALL_RADIUS, ball.getY()) != theme
+				&& getElementAt(ball.getX() + 2 * BALL_RADIUS, ball.getY()) != null) {
+			return getElementAt(ball.getX() + 2 * BALL_RADIUS, ball.getY());
+		}
+		if (getElementAt(ball.getX(), ball.getY() + 2 * BALL_RADIUS) != theme
+				&& getElementAt(ball.getX(), ball.getY() + 2 * BALL_RADIUS) != null) {
+			return getElementAt(ball.getX(), ball.getY() + 2 * BALL_RADIUS);
+
+		}
+		if (getElementAt(ball.getX() + 2 * BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS) != theme
+				&& getElementAt(ball.getX() + 2 * BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS) != null) {
+			return getElementAt(ball.getX() + 2 * BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS);
+		} else {
+			return theme;
+		}
+	}
+
+	// defines prize's movement
+
+	private void movePrize() {
+		prize.move(0, 5);
+		if (paddle.contains(prize.getX() + PRIZE_PARAMETER / 2, prize.getY() + PRIZE_PARAMETER / 2)) {
+			powerUp();
+			remove(prize);
+			prize = null;
+		}
+	}
+
+	// creates bonus prize 
+
+	private void createPrize() {
+		prize = new GRect(ball.getX() + BALL_RADIUS, ball.getY() + BALL_RADIUS, PRIZE_PARAMETER, PRIZE_PARAMETER);
+		prize.setFilled(true);
+		prize.setColor(Color.YELLOW);
+		add(prize);
 	}
 
 }
